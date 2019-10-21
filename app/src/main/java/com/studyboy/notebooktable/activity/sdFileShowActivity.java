@@ -1,8 +1,12 @@
 package com.studyboy.notebooktable.activity;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
@@ -12,7 +16,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.studyboy.notebooktable.R;
 import com.studyboy.notebooktable.databaseAndListview.openfile.FileShow;
@@ -28,9 +34,10 @@ import java.util.List;
 /**
  *   显示打开内存目录的结果
  */
-public class sdFileShow_activity extends AppCompatActivity {
+public class sdFileShowActivity extends AppCompatActivity {
 
-    String file_text=null;
+    private String TAG = "sdFileShowActivity";
+    String file_text = null;
 
     private List<FileShow>  fileShowList = new ArrayList<>();
     TextView tv_headShow ;
@@ -52,10 +59,9 @@ public class sdFileShow_activity extends AppCompatActivity {
         tv_headShow = (TextView ) findViewById(R.id.tv_headShow);
         listView = (ListView) findViewById(R.id.listView_file);
 
-        rootPath = getSDRoot( );
-        tv_headShow.setText(rootPath);
-//        showFinish();
-        getFileDirectory(rootPath);
+        getPermission();
+
+        Log.d(TAG, "onCreate: ******* rootPath="+rootPath);
 
     }
 
@@ -67,6 +73,7 @@ public class sdFileShow_activity extends AppCompatActivity {
 
 
         recentPath = filePath;
+
         // listView 顶部显示路径
         tv_headShow.setText("Path ： "+ recentPath);
 
@@ -90,43 +97,47 @@ public class sdFileShow_activity extends AppCompatActivity {
 //                return true;
 //            }
 //        });
-        // 文件列表按名称排列
-        List fileList = Arrays.asList(files);
-        Collections.sort(fileList, new Comparator<File>() {
-            @Override
-            public int compare(File o1, File o2) {
-                if (o1.isDirectory() && o2.isFile())
-                    return -1;
-                if (o1.isFile() && o2.isDirectory())
-                    return 1;
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
-        // fileShowList 列表的初始化
-        initShowList();
-        for(int i = 0; i < files.length; i++){
-            file = files[i] ;
-            // 是文件夹或TXT文件
-            if ( checkFileShape(file) ){
+        if(files  ==  null){
+            Log.d(TAG, "getFileDirectory:******* 空数组 ");
+        } else {
+            // 文件列表按名称排列
+            List fileList = Arrays.asList(files);
+            Collections.sort(fileList, new Comparator<File>() {
+                @Override
+                public int compare(File o1, File o2) {
+                    if (o1.isDirectory() && o2.isFile())
+                        return -1;
+                    if (o1.isFile() && o2.isDirectory())
+                        return 1;
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            // fileShowList 列表的初始化
+            initShowList();
+            for (int i = 0; i < files.length; i++) {
+                file = files[i];
+                // 是文件夹或TXT文件
+                if (checkFileShape(file)) {
 
-                //  根据文件夹或TXT 获取对应图标
-                if( file.isDirectory()){
-                    fileShow = new FileShow(file.getPath(), R.drawable.folder);
-                    fileShowList.add(fileShow);
-                } else {
-                    fileShow = new FileShow(file.getPath(), R.drawable.txt);
-                    fileShowList.add(fileShow);
+                    //  根据文件夹或TXT 获取对应图标
+                    if (file.isDirectory()) {
+                        fileShow = new FileShow(file.getPath(), R.drawable.folder);
+                        fileShowList.add(fileShow);
+                    } else {
+                        fileShow = new FileShow(file.getPath(), R.drawable.txt);
+                        fileShowList.add(fileShow);
+                    }
                 }
             }
+            listViewFileShow();
         }
-        listViewFileShow( );
     }
 
     /**
      *  文件夹列表显示及点击监听,文件夹则打开，txt 文件则返回其路径
      */
     public void listViewFileShow( ){
-        MyFileAdapter adapter = new MyFileAdapter(sdFileShow_activity.this,
+        MyFileAdapter adapter = new MyFileAdapter(sdFileShowActivity.this,
                 R.layout.list_sdfile_item , fileShowList);
 
         listView.setAdapter(adapter);
@@ -224,38 +235,6 @@ public class sdFileShow_activity extends AppCompatActivity {
         finish();
     }
 
-    /**
-     *  获取内存卡根目录
-     * @return
-     */
-    public String getSDRoot(){
-        String SDRoot = null;
-        if(!checkSDcard()){
-            Toast.makeText(this,"no sdcard",Toast.LENGTH_SHORT).show();
-            SDRoot = "";
-        }
-        try{
-            SDRoot = Environment.getExternalStorageDirectory().toString();
-        } catch(Exception e){
-            Toast.makeText(this," 打不开诶 ",Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        }
-
-        return SDRoot;
-    }
-
-    /**
-     *  检查SD 是否存在
-     * @return
-     */
-    public boolean checkSDcard(){
-        String sdString = Environment.getExternalStorageState();
-        if(sdString.equals(Environment.MEDIA_MOUNTED)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     /**
      *  设置dialog形式 Activity 的属性
@@ -269,6 +248,66 @@ public class sdFileShow_activity extends AppCompatActivity {
         lp.height = WindowManager.LayoutParams.MATCH_PARENT;
         lp.gravity = Gravity.LEFT | Gravity.TOP;//设置对话框置顶显示
         win.setAttributes(lp);
+    }
+
+
+    /**
+     *  检查获取权限
+     * @return
+     */
+    public void getPermission(){
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            // 检查权限
+            int readCheck = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE );
+            int writeCheck = checkSelfPermission( Manifest.permission.WRITE_EXTERNAL_STORAGE );
+            if( readCheck == PackageManager.PERMISSION_GRANTED && writeCheck == PackageManager.PERMISSION_GRANTED ){
+                // 已有权限
+                getSDRoot();
+            } else {
+                // api > 23 还需要手动申请权限
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            }
+        } else {
+
+            String sdString = Environment.getExternalStorageState();
+            if ( sdString.equals( Environment.MEDIA_MOUNTED ) ) {
+                getSDRoot();
+
+            } else {
+                Toast.makeText(this,"no sdcard",Toast.LENGTH_SHORT).show();
+            }
+        }
+
+    }
+
+    /**
+     *  获取根目录
+     */
+    public void getSDRoot(){
+
+        try{
+            // 获取根目录
+            rootPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+            //
+            getFileDirectory(rootPath);
+
+        } catch(Exception e){
+            Toast.makeText(this," 打不开诶 ",Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
+            Log.d(TAG, "onRequestPermissionsResult: ******* 成功获取权限");
+            getSDRoot();
+
+        }
     }
 
     @Override

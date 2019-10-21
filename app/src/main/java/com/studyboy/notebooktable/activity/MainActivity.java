@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.studyboy.notebooktable.R;
@@ -120,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 onItemSelected("");
                 break;
             case R.id.btn_open:
-                Intent intent = new Intent(MainActivity.this, sdFileShow_activity.class);
+                Intent intent = new Intent(MainActivity.this, sdFileShowActivity.class);
                 startActivityForResult(intent,1);
                 break;
             case R.id.btn_reName:
@@ -146,29 +145,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         leftFragment.listViewShow();
     }
 
+    private String sdFilePath ;
     /**
      *  获取打开SD卡存储文件 返回的路径
-     * @param requestCode
-     * @param resultCode
-     * @param data
      */
     @Override
     protected  void onActivityResult(int requestCode ,int resultCode,Intent data){
         switch(requestCode){
             case 1:
-                String sdFileName = data.getStringExtra("data_return");
-                if(sdFileName.equals("")){
+                 sdFilePath = data.getStringExtra("data_return");
+                if( sdFilePath.equals("")){
                      return ;
                 }
-                else if(sdFileName.equals("1")){
+                else if(sdFilePath.equals("1")){
                     Toast.makeText(this,"文件过大，暂不支持",Toast.LENGTH_SHORT).show();
                 }
                 else{
-                    String sdFileText = openSDFile(sdFileName);
+                    String sdFileText = openSDFile(sdFilePath);
                     // 显示文件内容
                     editText.setText(sdFileText.toCharArray(), 0, sdFileText.length());
                     // 根据文件路径获取文件名并显示
-                    File file = new File(sdFileName);
+                    File file = new File(sdFilePath);
                     fileName = file.getName();
                     text_Name.setText(fileName.toCharArray(), 0, fileName.length());
                 }
@@ -189,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         StringBuffer buffer= null;
         try{
             InputStream is = new FileInputStream(file);
-            InputStreamReader inputStreamReader = new InputStreamReader(is,"gbk");
+            InputStreamReader inputStreamReader = new InputStreamReader(is,"UTF-8");//GBK
             BufferedReader in = new BufferedReader(inputStreamReader);
             buffer = new StringBuffer();
             String line = "";

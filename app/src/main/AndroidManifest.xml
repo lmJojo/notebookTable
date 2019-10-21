@@ -13,7 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activity.sdFileShow_activity"
+            android:name=".activity.sdFileShowActivity"
             android:theme="@style/Theme.FloatActivity"
             >
 
