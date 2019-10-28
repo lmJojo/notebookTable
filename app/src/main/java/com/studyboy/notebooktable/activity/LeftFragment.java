@@ -17,7 +17,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.ListFragment;
 
 import com.studyboy.notebooktable.R;
-import com.studyboy.notebooktable.databaseAndListview.fileList.FileAdapter;
+import com.studyboy.notebooktable.databaseAndListview.fileList.FileHistoryAdapter;
 import com.studyboy.notebooktable.databaseAndListview.fileList.MyDataBaseHelper;
 import com.studyboy.notebooktable.databaseAndListview.fileList.MyFile;
 
@@ -42,7 +42,7 @@ public class LeftFragment extends ListFragment {
 
     private MyDataBaseHelper dbHelper;
     ListView listView;
-    FileAdapter adapter = null;
+    FileHistoryAdapter adapter = null;
     View view;
 
     /** 用于通过接口的回调 ，onAttach(Activity) 已被弃用 */
@@ -83,7 +83,7 @@ public class LeftFragment extends ListFragment {
         // 列表初始化
         initFileList();
 
-        adapter = new FileAdapter(getActivity(), R.layout.list_item_file, fileList);
+        adapter = new FileHistoryAdapter(getActivity(), R.layout.list_item_file, fileList);
 
         setListAdapter(adapter);
 

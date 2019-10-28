@@ -7,14 +7,26 @@ android {
         applicationId "com.studyboy.notebooktable"
         minSdkVersion 15
         targetSdkVersion 28
-        versionCode 190729002
-        versionName "1.1.005"
+        versionCode 191024004
+        versionName "1.2.03"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    signingConfigs {
+        readboy_rbsoft {
+            keyAlias 'rbsoft'
+            keyPassword '23378528'
+            storeFile file('E:/androidReadboy_sign/g_key/readboy.key')
+            storePassword 'soft@readboy.com'   //  release 版本必须要签名
+        }
+    }
+
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.readboy_rbsoft
         }
     }
 }
@@ -28,4 +40,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
 }

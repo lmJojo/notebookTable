@@ -7,17 +7,19 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-
 import com.studyboy.notebooktable.R;
-import com.studyboy.notebooktable.databaseAndListview.fileList.MyFile;
+
 
 import java.util.List;
 
+/**
+ * 历史记录显示适配器
+ */
 
-public class FileAdapter extends ArrayAdapter<MyFile> {
+public class FileHistoryAdapter extends ArrayAdapter<MyFile> {
 
     private int resourceId;
-    public FileAdapter(Context context, int textViewResourceId, List<MyFile> objects) {
+    public FileHistoryAdapter(Context context, int textViewResourceId, List<MyFile> objects) {
 
 
         super(context, textViewResourceId, objects);
@@ -34,17 +36,17 @@ public class FileAdapter extends ArrayAdapter<MyFile> {
     public View getView(int position, View convertView, ViewGroup parent){
 
 
-        MyFile file=getItem(position);
+        MyFile file = getItem( position );
         View view;
         ViewHolder viewHolder;
 
         if( convertView == null){
-            view= LayoutInflater.from(getContext()).inflate(resourceId ,parent,
+            view = LayoutInflater.from(getContext()).inflate(resourceId ,parent,
                     false );
             viewHolder = new ViewHolder();
 
-            viewHolder.tv_Name=(TextView) view.findViewById(R.id.name);
-            viewHolder.tv_DateTime=(TextView)view.findViewById(R.id.datetime);
+            viewHolder.tv_Name = (TextView) view.findViewById( R.id.name );
+            viewHolder.tv_DateTime = (TextView) view.findViewById( R.id.datetime );
             view.setTag(viewHolder);
 
         } else {
@@ -56,6 +58,8 @@ public class FileAdapter extends ArrayAdapter<MyFile> {
         viewHolder.tv_DateTime.setText(file.getDatetime());
         return view;
     }
+
+
     class ViewHolder{
 
         TextView tv_Name;

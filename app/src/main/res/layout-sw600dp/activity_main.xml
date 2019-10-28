@@ -4,18 +4,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
     <fragment
         android:id="@+id/left_fragment"
         android:name="com.studyboy.notebooktable.activity.LeftFragment"
-        android:layout_width="0dp"
+        android:layout_width="428dp"
         android:layout_height="match_parent"
-        android:layout_weight="1 " />
+        />
 
     <LinearLayout
         android:orientation="horizontal"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="2 ">
+        >
 
         <View
             android:layout_width="2dp"
@@ -28,7 +29,19 @@
             android:layout_height="match_parent"
             android:layout_marginRight="10dp"
             android:layout_marginLeft ="10dp"/>
-
     </LinearLayout>
 
+
+
+
 </LinearLayout>
+
+    <!--<RelativeLayout-->
+        <!--android:id="@+id/test_layout"-->
+        <!--android:layout_width="428dp"-->
+        <!--android:layout_height="match_parent">-->
+        <!---->
+    <!--</RelativeLayout>-->
+
+
+

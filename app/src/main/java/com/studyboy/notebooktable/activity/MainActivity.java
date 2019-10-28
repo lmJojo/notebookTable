@@ -1,36 +1,36 @@
 package com.studyboy.notebooktable.activity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.studyboy.notebooktable.R;
+import com.studyboy.notebooktable.SdFileWindow;
 import com.studyboy.notebooktable.databaseAndListview.fileList.MyDataBaseHelper;
+import com.studyboy.notebooktable.util.FileUtil;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
         LeftFragment.Callbacks{
 
+    private String TAG = "MainActivity";
     /** 文件名、文件内容、最近编辑日期*/
     String fileName = null;
     String fileString = null;
@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         leftFragment = (LeftFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.left_fragment) ;
-//        listView = (ListView)findViewById(R.id.@android:id/list)
 
         btn_ReName = (Button) findViewById(R.id.btn_reName);
         btn_ReName.setOnClickListener(this);
@@ -80,8 +79,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         editText = (EditText)findViewById(R.id.edit_Text);
         text_Name = (EditText) findViewById(R.id.text_name);
-        // 显示文件名
-//        text_Name.setText(fileName.toCharArray(), 0, fileName.length());
+
     }
 
     /** 重写接口中的方法，实现回调，获取传递过来的filename */
@@ -92,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // 显示名字
         text_Name.setText(fileName.toCharArray(), 0, fileName.length());
         // 获取文件内容
-        fileString = read_innerFile();
+        fileString = fileUtil.read_innerFile( fileName );
         // 显示文件内容
         editText.setText(fileString.toCharArray(), 0, fileString.length());
 
@@ -101,6 +99,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         editText.setFocusable(true);
         editText.requestFocus();
     }
+
+
 
     @Override
     public void onClick(View view){
@@ -119,13 +119,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 onItemSelected("");
                 break;
             case R.id.btn_open:
-                Intent intent = new Intent(MainActivity.this, sdFileShowActivity.class);
-                startActivityForResult(intent,1);
+                initPopWindow();
                 break;
             case R.id.btn_reName:
 
-                reNameFile();
-//                editFinish();
+                RenameFile();
                 break;
         }
     }
@@ -133,11 +131,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /**
      *  重命名
      */
-    public void reNameFile(){
+    public void RenameFile(){
         // 获取新名字
         String newName = text_Name.getText().toString();
 
-        fileReName(fileName,newName);
+        fileUtil.fileReName(fileName,newName);
         // 数据库名字更新
         updateDatabase(fileName,newName);
         // 文件新名字
@@ -146,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private String sdFilePath ;
+    private FileUtil fileUtil = new FileUtil(this);
     /**
      *  获取打开SD卡存储文件 返回的路径
      */
@@ -161,13 +160,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(this,"文件过大，暂不支持",Toast.LENGTH_SHORT).show();
                 }
                 else{
-                    String sdFileText = openSDFile(sdFilePath);
-                    // 显示文件内容
-                    editText.setText(sdFileText.toCharArray(), 0, sdFileText.length());
-                    // 根据文件路径获取文件名并显示
-                    File file = new File(sdFilePath);
-                    fileName = file.getName();
-                    text_Name.setText(fileName.toCharArray(), 0, fileName.length());
+                    openSdFile( sdFilePath );
                 }
                 break;
             default:
@@ -175,39 +168,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    /**
-     *  打开SD 存储文件
-     * @param filePath
-     * @return
-     */
-    public String  openSDFile(String filePath) {
-        String path =filePath;  //    "/storage/emulated/0/青花瓷.txt";
-        File file = new File(path);
-        StringBuffer buffer= null;
-        try{
-            InputStream is = new FileInputStream(file);
-            InputStreamReader inputStreamReader = new InputStreamReader(is,"UTF-8");//GBK
-            BufferedReader in = new BufferedReader(inputStreamReader);
-            buffer = new StringBuffer();
-            String line = "";
-            while ((line = in.readLine()) != null) {
-                buffer.append(line);
-            }
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        if(buffer.toString().equals("") ){
-            Toast.makeText(this, " 咩有文件111111111", Toast.LENGTH_SHORT ).show();
-        }
-        return buffer.toString();
+    public void openSdFile(String filePath){
+        String sdFileText = fileUtil.openSDFile( filePath );
+        // 显示文件内容
+        editText.setText(sdFileText.toCharArray(), 0, sdFileText.length());
+        // 根据文件路径获取文件名并显示
+        File file = new File( filePath );
+        fileName = file.getName();
+        text_Name.setText(fileName.toCharArray(), 0, fileName.length());
+
     }
+
 
     /**
      *  编辑完成，保存文件，刷新视图
      */
     public void editFinish(){
 
-          reNameFile();
+          RenameFile();
         // 文件内容
         fileString = editText.getText().toString();
 
@@ -242,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /** 保存到数据库 */
     public void saveFileToDB( ) {
 //        fileName = editText.getText().toString();
-        fileDatetime = getTime();
+        fileDatetime = fileUtil.getTime();
         dbHelper=new MyDataBaseHelper(this ,"file.db",null,1);
         // 若没有 file.db 数据库，则创建
         SQLiteDatabase db = null;
@@ -310,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // 若没有 file.db 数据库，则创建
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("datetime",getTime());
+        values.put("datetime",fileUtil.getTime());
         values.put("name",newName);
         try{
             if(db != null){
@@ -335,37 +313,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-       // 读取本地存储 的文本
-    public String read_innerFile(){
-        FileInputStream in = null;
-        BufferedReader reader = null;
-        StringBuilder content = new StringBuilder();
-        try{
-            in = openFileInput(fileName);
-            reader = new BufferedReader(new InputStreamReader(in));
-            String line = " ";
-            while((line = reader.readLine()) != null){
-                content.append(line);
-                content.append("\n");
-            }
-            in.close();
-            reader.close();
-        }
-        catch(IOException e){
-            e.printStackTrace();
-        }
-        finally {
-            if(reader!=null){
-                try{
-                    in.close();
-                    reader.close();
-                }catch(IOException e){
-                    e.printStackTrace();
-                }
-            }
-        }
-        return content.toString();
-    }
+
 
     //  写入本地文本，保存
     public void  write_file(){
@@ -404,22 +352,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }
     }
+
+    private SdFileWindow sdFileWindow;
     /**
-     *  文件重命名
+     *  初始化弹窗
      */
-    public void fileReName(String oldName,String newName){
-//        String path = "/data/data/com.studyboy.notebooktable/files";
-        String path = getFilesDir().getPath();
-        File oldFile = new File(path,oldName);
-        File newFile = new File(path,newName);
-        oldFile.renameTo(newFile);
+    public void initPopWindow(){
+        if(sdFileWindow == null ){
+            Log.d(TAG, "initPopWindow: *********  初始化弹窗");
+            sdFileWindow = new SdFileWindow(this,btn_Open );
+            sdFileWindow.setOnListener(new SdFileWindow.OnWindowListen() {
+                @Override
+                public void onFilePath(String filePath, boolean canOpen) {
+                    if( canOpen ){
+                        openSdFile( filePath );
+                    } else {
+                      Toast.makeText(MainActivity.this,"文件过大，暂不支持打开"
+                              ,Toast.LENGTH_SHORT ).show();
+                    }
+                }
+            });
+        }
+
+        else{
+            sdFileWindow.init();
+        }
+
+        //
     }
 
-    /** 获取时间 */
-    public  String getTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date = new Date(System.currentTimeMillis());
-        String str = sdf.format(date);
-        return str;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if( grantResults[0] == PackageManager.PERMISSION_GRANTED ){
+            Log.d(TAG, "onRequestPermissionsResult: ******* 成功获取权限");
+            sdFileWindow.getRootData();
+        } else {
+            Toast.makeText(MainActivity.this,"获取权限失败",Toast.LENGTH_SHORT ).show();
+        }
     }
 }

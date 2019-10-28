@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="window_height">1000dp</dimen>
+    <dimen name="window_width">580dp</dimen>
+</resources>

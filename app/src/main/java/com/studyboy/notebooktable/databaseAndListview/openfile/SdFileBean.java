@@ -2,17 +2,17 @@ package com.studyboy.notebooktable.databaseAndListview.openfile;
 
 
 
-public class FileShow {
+public class SdFileBean {
 
     String SDfilePath;
     int imageID;
 
-    public FileShow(String SDfileName , int imageID){
+    public SdFileBean(String SDfileName , int imageID){
         this.SDfilePath = SDfileName;
         this.imageID =  imageID;
     }
 
-    public String SDfilePath() {
+    public String getSDfilePath() {
         return SDfilePath;
     }
 
